@@ -27,8 +27,11 @@
 </template>
 
 <script type="text/ecmascript-6">
+  // 载入自己写的滚动组件
   import Scroll from 'base/scroll/scroll'
+  // 载入loading组件
   import Loading from 'base/loading/loading'
+  // 载入歌曲列表组件
   import SongList from 'base/song-list/song-list'
   import {prefixStyle} from 'common/js/dom'
   import {playlistMixin} from 'common/js/mixin'
@@ -40,19 +43,24 @@
 
   export default {
     mixins: [playlistMixin],
+    // 拿到父级传进来的数据
     props: {
+      // 歌手背景图
       bgImage: {
         type: String,
         default: ''
       },
+      // 歌曲（多个）
       songs: {
         type: Array,
         default: []
       },
+      // 歌手名
       title: {
         type: String,
         default: ''
       },
+      //
       rank: {
         type: Boolean,
         default: false

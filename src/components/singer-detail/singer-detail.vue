@@ -2,6 +2,7 @@
   <!--缓动动画效果，使用transition标签包裹-->
   <transition name="slide">
     <!--歌曲列表组件-->
+    <!--将歌手的名字、歌手的背景图、歌手的歌曲传入-->
     <music-list :title="title" :bg-image="bgImage" :songs="songs"></music-list>
   </transition>
 </template>
@@ -51,6 +52,7 @@
           return
         }
         // 有歌手id的话，那么就调用封装好的发送jsonp请求的函数；
+        // 并且将该歌手的id传入；
         getSingerDetail(this.singer.id).then((res) => {
           if (res.code === ERR_OK) {
             // 获取数据成功，但此时的数据并不是我们想要的结果，
