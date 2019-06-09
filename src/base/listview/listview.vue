@@ -70,7 +70,7 @@
         default: []
       }
     },
-    // 计算属性
+    // 监听计算属性
     computed: {
       // 处理右侧索引列表的数据
       shortcutList() {

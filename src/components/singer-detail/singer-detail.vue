@@ -20,21 +20,26 @@
   import {mapGetters} from 'vuex'
 
   export default {
+    // 监听计算属性
     computed: {
       title() {
+        // 歌手名
         return this.singer.name
       },
       bgImage() {
+        // 背景图数据
         return this.singer.avatar
       },
       // 调用vuex的store/getters.js下的singer就等于调用了store/state.js中的singer存储的数据；
-      // 那么也就是拿到了当前需要的歌手的数据；此时就可以通过this.singer访问当vuex的state中管理的singer的数据；
+      // 那么也就是拿到了当前需要的歌手的ID等数据；此时就可以通过this.singer访问当vuex的state中管理的singer的数据；
+      // 这个singer的数据中也包括了歌手名和背景图
       ...mapGetters([
         'singer'
       ])
     },
     data() {
       return {
+        // 用于存储经过我们格式化后的歌手详情页数据（不包括歌手名和背景图，只是歌手的歌曲）；
         songs: []
       }
     },
@@ -56,7 +61,7 @@
         getSingerDetail(this.singer.id).then((res) => {
           if (res.code === ERR_OK) {
             // 获取数据成功，但此时的数据并不是我们想要的结果，
-            // 那么，调用格式化数据的方法；
+            // 那么，调用格式化数据的方法，将歌手详情页数数据进行格式化；
             // 然后赋值给vue组件本身的变量this.songs，此时就能用这个变量进行DOM渲染了；
             this.songs = this._normalizeSongs(res.data.list)
           }

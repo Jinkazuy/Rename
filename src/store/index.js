@@ -2,6 +2,8 @@ import Vue from 'vue'
 // 载入Vuex，记得安装；
 import Vuex from 'vuex'
 
+// 这个文件的作用是，如果需要对mutations.js中进行多次、复杂等操作时，
+// 就将函数封装到actions.js文件中，而不是在mutation.js封装方法；
 import * as actions from './actions'
 
 // 对外提供数据

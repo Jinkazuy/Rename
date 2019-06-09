@@ -17,6 +17,7 @@
 <script type="text/ecmascript-6">
   export default {
     props: {
+      // 歌曲数据
       songs: {
         type: Array,
         default: []
@@ -27,9 +28,14 @@
       }
     },
     methods: {
+      // 点击歌曲的时候将歌曲数据和索引传进来
       selectItem(item, index) {
+        // 调用父级传进来的方法，将歌曲数据和索引传给父级
+        // 然后父级拿到数据后，将数据传给vuex进行管理；
+        // 这样，打开播放器组件的时候，就能够通过vuex中的数据进行歌曲播放了；
         this.$emit('select', item, index)
       },
+      // 在循环每个歌曲数据时，将数据传入，然后返回：歌手名·专辑名
       getDesc(song) {
         return `${song.singer}·${song.album}`
       },

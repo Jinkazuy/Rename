@@ -8,6 +8,7 @@
     <keep-alive>
       <router-view></router-view>
     </keep-alive>
+    <!--播放器组件-->
     <player></player>
   </div>
 </template>
@@ -15,6 +16,7 @@
 <script type="text/ecmascript-6">
   // 引入顶部栏组件
   import MHeader from 'components/m-header/m-header'
+  // 引入播放器组件，因为播放器不输入任何router控制，是属于全局的组件，所以直接在APP中引入；
   import Player from 'components/player/player'
   // 引入tab栏组件
   import Tab from 'components/tab/tab'
