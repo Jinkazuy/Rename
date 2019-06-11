@@ -1,5 +1,9 @@
+// 调用api/song.js下的，向后台node.js发送AJAX请求的方法
+// 然后由后台的node.js修改请求头后，向qq服务器发送请求拿到歌词；
 import {getLyric} from 'api/song'
+// ERR_OK就等于0，只是为了增强语义化
 import {ERR_OK} from 'api/config'
+// 解码base64，用到的第三方包
 import {Base64} from 'js-base64'
 
 // 说明：这个文件中的函数的目的：就是为了将每个歌曲的数据进行格式化，达到我们想要的数据的格式；
@@ -18,15 +22,25 @@ export default class Song {
     this.url = url // 歌曲文件的请求路径
   }
 
+  // 获取歌词
   getLyric() {
+    // 如果当前歌词已经缓存了，就直接返回promise对象的resolve函数（也就是成功的回调函数）即可；
+    // 返回Promise.resolve等价于new一个promise对象后，返回resolve回调函数，也就是说，也可以.then；
     if (this.lyric) {
       return Promise.resolve(this.lyric)
     }
 
+    // 如果没有歌词，那么就返回一个 promise对象；
     return new Promise((resolve, reject) => {
+      // 调用api/song.js下的发送AJAX的请求，传入歌曲id；
       getLyric(this.mid).then((res) => {
+        // 判断错误码===0，代表数据获取没问题
         if (res.retcode === ERR_OK) {
+          // 让当前歌词，等于数据的歌曲（因为获取的是base64的字符串，所这里编译一下）
+          // 解码base64，用到了一个第三方库：js-base64 ；
           this.lyric = Base64.decode(res.lyric)
+          // 将结果传入第一个参数，也就是成功的回调函数中
+          // 那么在调用这个函数的时候，.tnen就能拿到当前歌曲的歌词了
           resolve(this.lyric)
         } else {
           reject('no lyric')
@@ -61,4 +75,3 @@ function filterSinger(singer) {
   })
   return ret.join('/')
 }
-

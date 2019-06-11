@@ -55,29 +55,54 @@ apiRoutes.get('/getDiscList', function (req, res) {
   })
 })
 
+// 获取歌词=======================
+// 同样因为qq服务器对获取数据做了保护，所以获取歌词也要修改请求头
 apiRoutes.get('/lyric', function (req, res) {
+  // 需要请求的url；
   var url = 'https://c.y.qq.com/lyric/fcgi-bin/fcg_query_lyric_new.fcg'
 
+  // 由node.js向qq服务器发送请求；
   axios.get(url, {
+    // 修改请求头，达到欺骗的目的
     headers: {
       referer: 'https://c.y.qq.com/',
       host: 'c.y.qq.com'
     },
+    // 请求体，请求体就是api/song.js发过来的请求体，
     params: req.query
   }).then((response) => {
+    // 拿到请求的结果，axios发送的请求的返回值，一般都在data属性下；
     var ret = response.data
+    // 这个进行一个判断，如果拿到的数据是字符串类型的话，格式是这样：jsonCallback({\"retcode"\:0,\"code\":0,})
+    // 那么我们需要的只是{}里的内容，所以这里用正常匹配；
+    // 就需要转成json对象；
     if (typeof ret === 'string') {
+      // 第一个^是开始，而[]中的那个^取非的意思
+      // 这个正则的意思大概是：
+      // 以任意字母(多个)开始， 并且以()结束，因为使用了转移符\；
+      // 匹配到的小括号里使用[]分组，每个分组中，不能是()这个符号，那么匹配到的就是"retcode":0,"code":0,...
       var reg = /^\w+\(({[^()]+})\)$/
+      // 用正则表达式.match方法，匹配返回的结果的值；
       var matches = ret.match(reg)
+      // 如果能够匹配到，说明此时的matches就等于一个json格式的字符串了；
       if (matches) {
+        // 那么就将这个结果转成json对象；
         ret = JSON.parse(matches[1])
       }
     }
+    // node.js发送请求完了之后，拿到结果；
+
+    // 然后再将结果返回给前台js；
+    // 这里将结果直接返回，设置res，也就是处理router的fn的第二个参数；
+    // 那么在api/song.js中想这个node.js发的请求，axios.get(...).then(就能拿到)
+    // res.json是返回json格式的数据
     res.json(ret)
   }).catch((e) => {
     console.log(e)
   })
 })
+// 获取歌词结束=======================
+
 
 // 将/api这个url用apiRoutes处理；
 app.use('/api', apiRoutes)

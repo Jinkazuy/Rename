@@ -28,26 +28,39 @@
           <!--歌手名-->
           <h2 class="subtitle" v-html="currentSong.singer"></h2>
         </div>
+        <!--// cd唱片和歌词的容器-->
+        <!--// 这个容器的宽度就是屏幕的宽度，并不是屏幕的两倍-->
+        <!--// 之所以JK会误会成两个屏幕的宽度，是因为cd唱片和歌词用了inline-block这个css属性-->
+        <!--// 这个inline-block会让两个元素并排显示，所以歌词部分会被挤到右边，并且这个父级元素overflow：hidden了，就看不到歌词部分了-->
+        <!--// 给这个容器添加touch事件来控制左右滑动切换歌词和cd唱片-->
         <div class="middle"
              @touchstart.prevent="middleTouchStart"
              @touchmove.prevent="middleTouchMove"
              @touchend="middleTouchEnd"
         >
+          <!--// 唱片-->
           <div class="middle-l" ref="middleL">
             <!--// 正常尺寸的cd唱片，动画钩子函数中控制的就是这个元素 -->
             <div class="cd-wrapper" ref="cdWrapper">
               <div class="cd" :class="cdCls">
-                <!--歌曲图片-->
+                <!--// 歌曲图片-->
                 <img class="image" :src="currentSong.image">
               </div>
             </div>
+            <!--当前播放的歌词，在cd唱片下面显示-->
             <div class="playing-lyric-wrapper">
               <div class="playing-lyric">{{playingLyric}}</div>
             </div>
           </div>
+          <!--// 歌词-->
+          <!--// 使用scroll这个自己写的滚动组件，将歌词包裹起来-->
+          <!--// 这个data的目的，就是为了当歌词不为null的时候，将歌词传入-->
+          <!--// 当scroll组件监听到data发生改变是，scroll组件调用重新计算尺寸的方法-->
           <scroll class="middle-r" ref="lyricList" :data="currentLyric && currentLyric.lines">
             <div class="lyric-wrapper">
               <div v-if="currentLyric">
+                <!--// 因为歌词数据是数组，每个元素是一行一行的歌词，所以这里用v-for循环-->
+                <!--// 歌词高亮：currentLineNum是当前播放的歌词的行-->
                 <p ref="lyricLine"
                    class="text"
                    :class="{'current': currentLineNum ===index}"
@@ -151,6 +164,7 @@
 
 <script type="text/ecmascript-6">
   // 载入vuex，然后提取vuex提供的语法糖，比如mapGetters，就能拿到vuex中getter下的相关内容；
+  // 然后就能使用 ...mapGetters() 来映射vuex下的getters中的内容了，mutations和actions映射的方法同理
   import {mapGetters, mapMutations, mapActions} from 'vuex'
   // 如果使用js方式创建css3的animation，
   // 用到了第三方插件create-keyframe-animation；
@@ -161,7 +175,10 @@
   import ProgressBar from 'base/progress-bar/progress-bar'
   // 迷你进度条（圆圈）组件
   import ProgressCircle from 'base/progress-circle/progress-circle'
-  import {playMode} from 'common/js/config'
+  // 得到播放模式，其实就是更加语义化 返回的就是{sequence: 0, loop: 1, random: 2}这样一个对象；
+  import {playMode} from '../../common/js/config'
+  // 这个lyric-parser第三方包是黄奕专门用来处理这个项目的封装的一个插件；
+  // 因为逻辑复杂，所以封装成一个插件，而且不解释其中的作用，只是用到了几个方法；
   import Lyric from 'lyric-parser'
   // 滚动组件
   import Scroll from 'base/scroll/scroll'
@@ -187,9 +204,15 @@
         currentTime: 0,
         // 迷你进度条元素的宽高值；
         radius: 32,
+        // 当前歌词对象，这个对象赋值的时候，是通过new 一个黄奕自己封装的第三方包
+        // 这个第三方包是专门用来处理这个项目的封装的一个插件；
+        // 因为逻辑复杂，所以封装成一个插件，而且不解释其中的作用，只是用到了几个方法；
         currentLyric: null,
+        // 当前歌词的行数
         currentLineNum: 0,
+        // 当前显示的是cd唱片，还是歌词屏幕
         currentShow: 'cd',
+        // 当前播放的那一行的歌词；
         playingLyric: ''
       }
     },
@@ -327,6 +350,7 @@
         // 而没有在本vue组件中映射这个方法；
         // 设置播放状态为取反
         this.setPlayingState(!this.playing)
+        // 如果当前歌曲有歌词，也让歌词进行取反状态，也就是切换播放或者暂停
         if (this.currentLyric) {
           this.currentLyric.togglePlay()
         }
@@ -348,8 +372,13 @@
         this.$refs.audio.currentTime = 0
         // 然后调用触发audio的play事件，从而触发封住好的 ready()函数；
         this.$refs.audio.play()
+        // 设置歌曲播放状态位true
         this.setPlayingState(true)
+        // 判断当前歌曲有歌词的时候，调用黄奕的第三方包的方法
         if (this.currentLyric) {
+          // 这个.seek是黄奕的第三方包，也就是专门处理歌词的包的方法
+          // 传入秒数，目的是保持当前歌词与歌曲进度一致，因为循环播放了，歌曲就是从头开始了，
+          // 所以传入0
           this.currentLyric.seek(0)
         }
       },
@@ -363,6 +392,7 @@
         // 判断，如果当前歌曲列表长度为1，那么就循环播放
         if (this.playlist.length === 1) {
           this.loop()
+          // 并且结束之后的代码运行
           return
         } else {
           // 如果歌曲列表长度不为1，那么就让currentIndex+1
@@ -457,90 +487,201 @@
         if (!this.playing) {
           this.togglePlaying()
         }
+        // 如果当前歌词有歌词
         if (this.currentLyric) {
+          // 这个seek方法也是黄奕第三方包专门处理歌词的插件提供的
+          // 传入秒数*1000，目的与当前拖放歌曲的进度保持一致
+          // 这个*1000不用管，这个方法也不用管，因为是黄奕自己封装的，有兴趣可以去看他这个插件的文档
           this.currentLyric.seek(currentTime * 1000)
         }
       },
+      // 歌词
+      // 这个.getLyric()不是common/js/song.js的，
+      // 而是这个player.vue的this.getLyric()
       getLyric() {
+        // 这个currentSong.getLyric()调用的才是common/js/song.js中的方法，
+        // 因为这个currentSong是new 的common/js/song.js的song Class得来的，所以.getLyric()方法；
         this.currentSong.getLyric().then((lyric) => {
+          // 判断，这是因为歌词可能缓存，可能会出现冲突的情况，所以进行判断，
+          // 是否是通过当前歌曲id发送AJAX请求拿到的歌曲；
           if (this.currentSong.lyric !== lyric) {
             return
           }
+          // 因为拿到的歌词是一个很长的字符串，
+          // [ti:可惜没如果]
+          // [ar:林俊杰]
+          // [al:新地球]
+          // [by:]
+          // [offset:0]
+          // [00:00.00]可惜没如果 (If Only…) (《杜鹃之巢》韩剧中文主题曲|《对我而言，可爱的她》韩剧中文片尾曲) - 林俊杰 (JJ Lin)
+          // [00:08.27]词：林夕
+          // [00:16.54]曲：林俊杰
+          // [00:24.81]假如把犯得起的错
+
+          // 所以调用黄奕自己写的专门处理歌词的第三方包的方法,这个方法提供了很多API
+          // 而且还会根据当前歌曲的进度的比例，去计算当前播放歌词的行数；
+          // 第一个参数将歌词数据传入，这个方法下有一个lines属性，就是这个第三方包将歌词格式化，形成一个数组，然后就能用于循环输出了；
+          // 第二个参数可以传一个回调函数
+          // 那么这个new 出来的对象的currentLyric.lines就是一行一行歌词的数组，循环用p标签循环这个数组的.txt，就能拿到每行的歌词；
           this.currentLyric = new Lyric(lyric, this.handleLyric)
+          // 判断，如果当前的歌曲是播放状态，
+          // 那么就让歌词也调用play()这个函数，这个函数是new的黄奕写的第三方提供的方法；
+          // 也就是进行滚动播放
           if (this.playing) {
+            // 因为前边new了黄奕的第三方包，所以由play()这个控制歌词播放的方法
             this.currentLyric.play()
           }
         }).catch(() => {
+          // 当然会有出错的情况
+          // 那么就设置当前歌词对象为NULL
           this.currentLyric = null
+          // 设置歌词正在播放的 那一行的 歌词内容为空
           this.playingLyric = ''
+          // 当前歌词播放行数为0
           this.currentLineNum = 0
         })
       },
+      // 调用黄奕处理歌词的方法第第二个参数的回调函数
+      // 这个回调函数的两个次数，由这个new Lyric方法自动传入；
+      // 而且黄奕的这个第三方包，也会根据当前播放歌曲的进度比例计算当前歌词的行数；
       handleLyric({lineNum, txt}) {
+        // 把前播放歌词的行数 赋值给 this.currentLineNum;
         this.currentLineNum = lineNum
+        // 判断，如果当前歌词行数大于5行的时候，
         if (lineNum > 5) {
+          // 就拿到歌词的p标签元素-5的结果，达到歌词居中的目的；
+          // 比如：当前播放行数是100，那么-5就是95，此时就拿到了这个95行的P标签的DOM元素；
           let lineEl = this.$refs.lyricLine[lineNum - 5]
+          // 然后调用自己写好的scroll的方法，滚动到指定DOM元素的位置，经过1秒的时间
           this.$refs.lyricList.scrollToElement(lineEl, 1000)
         } else {
+          // 如果当前播放歌词行数小于5，让滚动组件到顶部
           this.$refs.lyricList.scrollTo(0, 0, 1000)
         }
+        // 设置播放歌词数据为 是当前播放的歌词的行数的 那一行 的字符串；
         this.playingLyric = txt
       },
       showPlaylist() {
         this.$refs.playlist.show()
       },
+      // 切换唱片 & 歌词
+      // cd唱片 和 歌词父容器的touch事件 - 触摸开始
       middleTouchStart(e) {
+        // 标识符，标识开始触摸了
         this.touch.initiated = true
+        // 拿到一些DOM坐标属性
         const touch = e.touches[0]
+        // 记录触摸开始时的X、Y轴坐标
         this.touch.startX = touch.pageX
         this.touch.startY = touch.pageY
       },
+      // cd唱片 和 歌词父容器的touch事件 - 移动
       middleTouchMove(e) {
+        // 如果不是经过开始触摸后进入的这个移动事件，就返回，什么也不做
         if (!this.touch.initiated) {
           return
         }
+        // 拿到一些DOM坐标属性
         const touch = e.touches[0]
+        // 获取X轴实时偏移量：用实时坐标减去触摸开始时的坐标
         const deltaX = touch.pageX - this.touch.startX
+        // 获取Y轴实时偏移量
         const deltaY = touch.pageY - this.touch.startY
+        // 因为歌词时候Y轴移动的，所以当Y轴移动大于X轴移动的时候，就代表时候滚动歌词，
+        // 所以就不应该移动X轴的位置，所以返回，什么都不做
+        // 取绝对值，因为会有负数的移动，但不管是否是负数，只看移动的偏移量的绝对值
         if (Math.abs(deltaY) > Math.abs(deltaX)) {
           return
         }
+        // 进入到了这里，说明用户是左右滑动的
+        // 判断，如果当前的屏幕是cd唱片的话，就移动到0，也就是不移动
+        // x轴距离最大限制：
+        // 如果当前标识符是cd唱片的话，就设置当前left偏移为0；
+        // 如果当前不是cd唱片的话，也就是代表歌词页是当前屏幕，那么就将left偏移设置为负一屏幕；
         const left = this.currentShow === 'cd' ? 0 : -window.innerWidth
+        // 最大偏移量限制：取0 或者 取 （-375 或者 0到-375） 的值；
+        // 这样就做到了，想左偏移不会超过1屏幕，那么显示的就是歌词；
+        // 向右偏移不会超过0px，那么显示的就是cd唱片；
+        // Math.max(-window.innerWidth, left + deltaX)的目的是：↓
+        // 设置一个最小数为-375（一个屏幕的尺寸）
+        // 设置一个偏移数，如果当前屏幕是cd的时候，那么就是取0~当前偏移的值；
+        // 那么这个偏移值就可能是负数，也可能是正数；
+        // 所以 Math.max()得到的结果 -375~正无穷的 数；
+        // 再用Math.min取 0 或者 Math.max()的 的最小值；
+        // 所以，最终offsetWidth这个变量拿到的就是0~-375的数；
+        // 就保证了在触摸移动的时候，歌词页的DOM元素，X轴只能移动-375~0的数；
         const offsetWidth = Math.min(0, Math.max(-window.innerWidth, left + deltaX))
+        // 用this.touch做一个临时储存变量；
+        // 在这个临时变量下的percent来记录X轴偏移量除以屏幕宽度的比例；
+        // 得到这个比例的目的是：当向左滑动超过0.1个屏幕的时候再松手，就滚动到歌词，不超过0.1个屏幕就回到cd唱片；
+        // 0.1个屏幕的目的就是轻轻向左滑动；
         this.touch.percent = Math.abs(offsetWidth / window.innerWidth)
+        // 这里是根据手指滑动的偏移量，实时的让歌词 跟随手指移动；
+        // 这里就是个障眼法，其实触摸滑动的是cd唱片和歌词的父级容器；
         this.$refs.lyricList.$el.style[transform] = `translate3d(${offsetWidth}px,0,0)`
+        // 过度动效为0，确保没有延迟，同样用到了自己写的兼容css3浏览器私有前缀的函数来处理浏览器前缀的兼容性问题；
         this.$refs.lyricList.$el.style[transitionDuration] = 0
+        // 然后让cd唱片的不透明度根据滑动的比例进行透明；
         this.$refs.middleL.style.opacity = 1 - this.touch.percent
+        // 过度动效时间为0，确保没有延迟；
         this.$refs.middleL.style[transitionDuration] = 0
       },
+      // cd唱片 和 歌词父容器的touch事件 - 触摸结束
       middleTouchEnd() {
         let offsetWidth
         let opacity
+        // 触摸结束时进行判断
+        // 这里判断，如果当前的屏幕标识是cd唱片，
         if (this.currentShow === 'cd') {
+          // 那么再判断，如果当前滚动的比例大于了0.1，
+          // 说明向左稍稍滑动了，稍稍滑动就让屏幕切换；
           if (this.touch.percent > 0.1) {
+            // 那么设置偏移量为一整个屏幕（歌词容器设置的就是1整个屏幕的宽度）
             offsetWidth = -window.innerWidth
+            // 设置cd唱片不透明度
             opacity = 0
+            // 让当前屏幕标识变为歌词页
             this.currentShow = 'lyric'
           } else {
+            // 如果向左滑动没有超过预设值
+            // 那么设置最终偏移为0，也就是让歌词回到自己的位置，超出屏幕，从而看到不
             offsetWidth = 0
+            // 设置cd唱片的不透明度为1
             opacity = 1
           }
         } else {
+          // 如果当前屏幕不是cd，那就是标识当前屏幕是歌词页
           if (this.touch.percent < 0.9) {
+            // 那就判断滑动距离，因为此时歌词页的位置是负数的一个屏幕的位置
+            // 所以这里用1-0.1的结果来计算滑动比例；
+            // 设置歌词的最终偏移位置为0，也就是回到正常的屏幕之外的位置
             offsetWidth = 0
+            // 设置当前屏幕标识为cd唱片
             this.currentShow = 'cd'
+            // 设置cd唱片容器不透明度为1
             opacity = 1
           } else {
+            // 否则，说明向右滑动没有超过预设值，那么就让歌词回到屏幕显示
             offsetWidth = -window.innerWidth
+            // 继续让cd唱片不透明度为0；
             opacity = 0
           }
         }
+        // 这里的time是当基础结束后，让cd唱片透明变化 和 歌词X轴移动的变化有个缓动效果
         const time = 300
+        // 经过前边的大量的判断，这里最终将计算后的结果应用到DOM元素上
+        // 设置歌词的X轴最终位置（是位置，不是偏移量）
+        // 这里还是用到了自己服装的，为了解决浏览器私有前缀的兼容性的函数；
         this.$refs.lyricList.$el.style[transform] = `translate3d(${offsetWidth}px,0,0)`
+        // 设置歌词移动的动效时间
         this.$refs.lyricList.$el.style[transitionDuration] = `${time}ms`
+        // 设置cd唱片的透明度
         this.$refs.middleL.style.opacity = opacity
+        // 设置cd唱片透明度变化的动效时间
         this.$refs.middleL.style[transitionDuration] = `${time}ms`
+        // 将开始触摸的标识符设置为false
         this.touch.initiated = false
+        // 至此，切换cd唱片和歌词的事件处理完成；
       },
       // 处理秒的格式，当秒小于2位的时候，在前面加上一个0
       _pad(num, n = 2) {
@@ -603,12 +744,22 @@
         if (newSong.id === oldSong.id) {
           return
         }
+        // 当前歌曲发生变化时，如果currentLyric，也就是当前歌曲的歌词如果存在的话
+        // 那么就要清空当前的歌词，否则就会出现bug
+        // 出现bug的原因就是，这个currentLyric是new出来的对象，这个对象是黄奕的第三方处理歌词的插件；
+        // 如果在切换歌曲的时候不清空这个对象中的数据，
+        // 在接收新的new 出来的对象的时候就会出现问题；
         if (this.currentLyric) {
+          // 停止当前歌词的播放（黄奕的第三方包的方法）
           this.currentLyric.stop()
+          // 设置当前时间为0
           this.currentTime = 0
+          // 清空当前 那一行 歌词的内容；
           this.playingLyric = ''
+          // 设置当前歌词所在行数为0
           this.currentLineNum = 0
         }
+        // 先清除定时器
         clearTimeout(this.timer)
         // 延迟触发audio标签的play事件，否则会出现与scr请求发生冲突的bug;
         // 调用audio的play事件，也就是触发ready()这个函数；
