@@ -194,6 +194,13 @@
   const transitionDuration = prefixStyle('transitionDuration')
 
   export default {
+    // mixins
+    // 这里是引用了mixin.js文件，也就是说，这样的引用方式，
+    // 会把mixin.js中的所有代码都插入到这个vue组件中；
+    // 那么这个vue组件就能调用mixin.js中所有的方法了；
+    // 这就是模块化开发的好处，其实和单独引入某个js文件的中的某一个方法差不多的意思；
+    // 但是mixin.js中的函数是调用者基本都能用到mixin.js中的函数时才全部加载；
+    // 而且，如果调用者vue组件中有 与mixin.js中重名的属性、方法，则会覆盖掉mixin.js中的属性、方法、变量等；
     mixins: [playerMixin],
     data() {
       return {
@@ -709,7 +716,7 @@
         // 正常cd中心点的x轴坐标，要移动的为距离，因为是向左侧移动，所以是负数；
         // 屏幕的一半，再减去paddingLeft；
         const x = -(window.innerWidth / 2 - paddingLeft)
-        // 正常cd中心点的Y轴坐标，要移动的举例；
+        // 正常cd中心点的Y轴坐标，要移动的距离；
         // 用屏幕高度减去paddingTop，再减去正常cd宽度的一半，再减去迷你cd距离底部的距离；
         const y = window.innerHeight - paddingTop - width / 2 - paddingBottom
         // 此时得到计算后的结果；

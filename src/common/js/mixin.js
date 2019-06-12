@@ -2,13 +2,19 @@ import {mapGetters, mapMutations, mapActions} from 'vuex'
 import {playMode} from 'common/js/config'
 import {shuffle} from 'common/js/util'
 
+// 解决迷你播放器盖住其他页面滚动列表最底部的问题
 export const playlistMixin = {
   computed: {
+    // 拿到歌曲列表
     ...mapGetters([
       'playlist'
     ])
   },
   mounted() {
+    // 那么调用了这个mixin.js的vue组件的handlePlaylist(形参)
+    // 就会将这个mounted和activated下的 this.handlePlaylist(this.playlist) 自动引入
+    // 也就说，vue组件中的methods中的定义的 handlePlaylist(形参) 中的参数是形参，
+    // ↓↓↓ 下边的才是实参；
     this.handlePlaylist(this.playlist)
   },
   activated() {
@@ -21,6 +27,11 @@ export const playlistMixin = {
   },
   methods: {
     handlePlaylist() {
+      // 这里抛出异常的目的是：因为这个playlistMixin的组件，必须有这个handlePlaylist()方法，
+      // 然后就会覆盖这个mixin.js中的handlePlaylist()方法；
+      // 也就是说，边的mounted、activeted、watch里的handlePlaylist()其实是用到调用这个playlistMixin函数的vue组件中的
+      // 已经存在的playlist()方法，
+      // 所以，如果组件没有这个方法的话，就调用这个methods中的方法，抛出异常；
       throw new Error('component must implement handlePlaylist method')
     }
   }

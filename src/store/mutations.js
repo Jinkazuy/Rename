@@ -2,6 +2,7 @@
 // 引入mutaton-ytpes，目的是管理方法名；
 import * as types from './mutation-types'
 
+// matutaions负责修改state中的数据
 const matutaions = {
   [types.SET_SINGER](state, singer) {
     state.singer = singer

@@ -21,7 +21,9 @@ const state = {
   mode: playMode.sequence,
   // 当前播放的索引，通过修改这个currentIndex来控制歌曲的前进后退；
   currentIndex: -1,
+  // 当前推荐页点击的歌单数据
   disc: {},
+  // 当前被点击的排行榜
   topList: {},
   searchHistory: loadSearch(),
   playHistory: loadPlay(),

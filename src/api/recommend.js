@@ -60,7 +60,7 @@ export function getDiscList() {
   })
 }
 
-// 获取歌曲列表
+// 获取歌单详情页的歌曲列表
 export function getSongList(disstid) {
   const url = 'https://c.y.qq.com/qzone/fcg-bin/fcg_ucc_getcdinfo_byids_cp.fcg'
 

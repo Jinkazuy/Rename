@@ -51,6 +51,7 @@ export default class Song {
 }
 
 // 抽象出一个工厂发方法，那么传入每个歌曲的数据的时候，就new了一个实例对象
+// 返回一个当前歌曲的数据
 export function createSong(musicData) {
   return new Song({
     id: musicData.songid,

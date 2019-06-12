@@ -18,7 +18,9 @@
         </div>
         <div class="recommend-list">
           <h1 class="list-title">热门歌单推荐</h1>
+          <!--歌单列表-->
           <ul>
+            <!--点击某个歌单列表-->
             <li @click="selectItem(item)" v-for="item in discList" class="item">
               <div class="icon">
                 <img width="60" height="60" v-lazy="item.imgurl">
@@ -36,6 +38,8 @@
         <loading></loading>
       </div>
     </scroll>
+    <!--歌单详情页，也就是recommend的二级路由-->
+    <!--在访问www.xx.xx/recommend/xx(歌单id)的时候展开-->
     <router-view></router-view>
   </div>
 </template>
@@ -51,11 +55,13 @@
   // 这里引入发送跨域请求，所以调用了封装好的recommend中的方法，发送jsonp
   // 这个文件recommend中导出的多个方法，所以用{}结合,分割的形式接收；
   import {getRecommend, getDiscList} from '../../api/recommend'
+  // 混入文件
   import {playlistMixin} from '../../common/js/mixin'
 
   // 这里config是为了获取ERR_OK，也就是0，语义化更强；
   // 也就是说，所有需要判断是否===0的时候，就可以用===ERR_OK；
   import {ERR_OK} from '../../api/config'
+  // 拿到vuex中的mutations
   import {mapMutations} from 'vuex'
 
   export default {
@@ -76,9 +82,9 @@
       this._getDiscList()
     },
     methods: {
+      // 防止底部被迷你播放器盖住
       handlePlaylist(playlist) {
         const bottom = playlist.length > 0 ? '60px' : ''
-
         this.$refs.recommend.style.bottom = bottom
         this.$refs.scroll.refresh()
       },
@@ -93,11 +99,20 @@
           this.$refs.scroll.refresh()
         }
       },
+      // 点击歌单列表的某个歌单
       selectItem(item) {
+        // 改变路由URL，
+        // 并且将当前歌单的id传入，
+        // 从而实现打开歌单详情页
         this.$router.push({
           path: `/recommend/${item.dissid}`
         })
+        // 将当前歌单数据传入vuex
         this.setDisc(item)
+        // 如此这般，在点击某个歌单列表的时候，将数据传入vuex，
+        // 并且打开二级路由；
+        // 那么此时，二级路由disc.vue就能通过访问vuex中的state下的disc拿到歌单数据；
+        // 然后再通过歌单的id，发送请求拿到歌曲数据；
       },
       _getRecommend() {
         // 这里调用发送jsonp跨域请求的方法，因为common文件下的js/jsonp.js返回是一个promise方法，

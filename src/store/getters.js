@@ -26,8 +26,10 @@ export const currentSong = (state) => {
   return state.playlist[state.currentIndex] || {}
 }
 
+// 当前推荐页点击的歌单数据
 export const disc = state => state.disc
 
+// 当前被点击的排行榜
 export const topList = state => state.topList
 
 export const searchHistory = state => state.searchHistory

@@ -38,12 +38,14 @@ const SingerDetail = (resolve) => {
   })
 }
 
+// 二级路由：推荐页-歌单列表页
 const Disc = (resolve) => {
   import('components/disc/disc').then((module) => {
     resolve(module)
   })
 }
 
+// 二级路由：排行榜详情页
 const TopList = (resolve) => {
   import('components/top-list/top-list').then((module) => {
     resolve(module)
@@ -67,6 +69,8 @@ export default new Router({
       // 推荐页
       path: '/recommend',
       component: Recommend,
+      // 二级路由，歌单详情页
+      // 那么在访问/recommend/xx(歌单id)，就能打开歌单详情页了；
       children: [
         {
           path: ':id',
@@ -92,6 +96,7 @@ export default new Router({
       // 排行榜页
       path: '/rank',
       component: Rank,
+      // 排行榜详情页
       children: [
         {
           path: ':id',

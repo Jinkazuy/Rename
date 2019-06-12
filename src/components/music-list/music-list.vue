@@ -5,7 +5,7 @@
     <div class="back" @click="back">
       <i class="icon-back"></i>
     </div>
-    <!--// 使用v-html渲染歌手名-->
+    <!--// 使用v-html渲染歌手名 或 歌单名-->
     <h1 class="title" v-html="title"></h1>
     <!--// 使用计算属性返回一个bgimg的url地址-->
     <div class="bg-image" :style="bgStyle" ref="bgImage">
@@ -28,6 +28,7 @@
         <!--// 歌曲列表组件-->
         <!--// 传入select函数，然后在点击歌曲的时候，调用这个函数，将歌曲数据和歌曲索引传进来-->
         <!--// 传过来之后，父级拿到歌曲数据和索引，然后传到vuex中管理-->
+        <!--然后把rank传入song-list.vue，来确定是否是排行榜页面调用的-->
         <song-list :songs="songs" :rank="rank" @select="selectItem"></song-list>
       </div>
       <!--// loading组件，在没有歌曲列表的时候显示-->
@@ -49,6 +50,7 @@
   // 所以这里就封装了一个方法，将传入的css属性，如果检测到浏览器有私有前缀，
   // 那么就将浏览器加私有前缀再返回回来；
   import {prefixStyle} from 'common/js/dom'
+  // 拿到混入文件
   import {playlistMixin} from 'common/js/mixin'
   // 拿到vuex中的方法 的actions.js中的方法，
   // actions.js的作用就是当需要对mutations.js总的方法进行多次获复杂操作的时候，
@@ -62,6 +64,13 @@
   const backdrop = prefixStyle('backdrop-filter')
 
   export default {
+    // mixins
+    // 这里是引用了mixin.js文件，也就是说，这样的引用方式，
+    // 会把mixin.js中的所有代码都插入到这个vue组件中；
+    // 那么这个vue组件就能调用mixin.js中所有的方法了；
+    // 这就是模块化开发的好处，其实和单独引入某个js文件的中的某一个方法差不多的意思；
+    // 但是mixin.js中的函数是调用者基本都能用到mixin.js中的函数时才全部加载；
+    // 而且，如果调用者vue组件中有 与mixin.js中重名的属性、方法，则会覆盖掉mixin.js中的属性、方法、变量等；
     mixins: [playlistMixin],
     // 拿到父级传进来的数据
     props: {
@@ -80,7 +89,9 @@
         type: String,
         default: ''
       },
-      //
+      // 判断排行榜是否为true，
+      // 在调用这个组件的时候，如果是排行榜页面调用的，
+      // 那么就会传入rank=true；
       rank: {
         type: Boolean,
         default: false
@@ -119,10 +130,18 @@
       this.$refs.list.$el.style.top = `${this.imageHeight}px`
     },
     methods: {
+      // 这里是为了解决，当底部有迷你播放器的时候会盖住scroll组件的一部分
+      // 涉及到了mixin.js中的函数
       handlePlaylist(playlist) {
+        // 这里的playlist其实就是mixin.js中的this.playlist，也就是当前这个vue组件的tis.playlist
+        // 那么当有这个this.playlist，歌曲列表大于0的时候，那么就设置一个底部迷你播放器的高度为60，
+        // 如果歌曲列表小于等于0的话，就等于迷你播放列表显示不了，也就不用增加scroll组件的高度了；
         const bottom = playlist.length > 0 ? '60px' : ''
+        // 拿到滚动组件，设置底部的偏移；
         this.$refs.list.$el.style.bottom = bottom
         // 调用滚动组件内部的重新计算的方法
+        // 这样，在歌曲列表长度大于0的时候，也就是当前播放器处于活动状态时，
+        // 那么就增加scroll组件底部的高度，从而不让这个迷你播放器盖住scroll最下边的60px;
         this.$refs.list.refresh()
       },
       // 获取歌曲列表组件的Y轴滚动值，
