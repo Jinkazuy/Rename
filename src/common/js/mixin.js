@@ -137,6 +137,7 @@ export const playerMixin = {
   }
 }
 
+// 搜索相关的函数混入
 export const searchMixin = {
   data() {
     return {
@@ -146,16 +147,23 @@ export const searchMixin = {
   },
   computed: {
     ...mapGetters([
+      // 拿到vuex管理的搜索历史记录
       'searchHistory'
     ])
   },
   methods: {
+    // search.vue 传给 search-box.vue的方法，
+    // 目的是 实时获取 搜索框组件的搜索关键词；
     onQueryChange(query) {
       this.query = query
     },
+    // 失去焦点
     blurInput() {
       this.$refs.searchBox.blur()
     },
+    // 点击热搜关键词，
+    // 调用引入的search-box的向外派发的setQuery方法
+    // 从而设置搜索关键词
     addQuery(query) {
       this.$refs.searchBox.setQuery(query)
     },

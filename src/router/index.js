@@ -108,6 +108,7 @@ export default new Router({
       // 搜索页
       path: '/search',
       component: Search,
+      // 搜索结果详情页
       children: [
         {
           path: ':id',

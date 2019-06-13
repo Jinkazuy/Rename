@@ -29,6 +29,7 @@
         type: Array,
         default: null
       },
+      // 拿到父级传入的，用于上推刷新的变量标识符
       pullup: {
         type: Boolean,
         default: false
@@ -73,17 +74,37 @@
             me.$emit('scroll', pos)
           })
         }
-
+        // 上推刷新
+        // 如果父级传入了pullup===true的话，
+        // 说明调用滚动组件的父级组件，需要上推刷新的操作；
+        // 然后给scroll这个组件注册 scrollEnd事件；
         if (this.pullup) {
+          // 注册scrollEnd事件，这是better-scroll第三方包提供的事件；
+          // 其实这个scrollEnd事件,是松手的时候,而不是真的滚动结束时候;
           this.scroll.on('scrollEnd', () => {
+            // 判断，如果当前的scroll的y轴值 小于了 这个scroll组件的最大Y轴值+50,
+            // 使用小于号判断，是因为向上滑动的话 ，移动的是y轴，也就是 负数；
+            // 那么说明用户此时已经上推scroll了超过50px;
             if (this.scroll.y <= (this.scroll.maxScrollY + 50)) {
+              // 调用父级传入的方法 scrollToEnd 方法；
+              // 也就是触发 suggest.vue中的 searchMore 函数；
+              // 实现更多数据的请求；
               this.$emit('scrollToEnd')
             }
           })
         }
+        // 下拉刷新
+        // 那么其实这里并没有做下拉刷新的操作，不过JK想实现的话，其实就更改判断条件即可，
+        // 将判断条件改为，scroll组件滚动结束时，Y轴的滚动值是否大于50，说明用户是下拉的；
 
+        // 滚动监听
+        // 这是为了让输入框失去焦点，隐藏键盘；
         if (this.beforeScroll) {
+          // 如果父级传入了beforeScroll的函数，那么说明这个父级是需要隐藏键盘的
+          // 那么就注册 给scroll组件注册 beforeScrollStart （better-scroll提供的事件）
+          // 也就是在手指刚刚触摸，在滚动之前触发这个事件的处理函数
           this.scroll.on('beforeScrollStart', () => {
+            // 调用父级的beforeScroll函数
             this.$emit('beforeScroll')
           })
         }
