@@ -2,6 +2,16 @@ import {mapGetters, mapMutations, mapActions} from 'vuex'
 import {playMode} from 'common/js/config'
 import {shuffle} from 'common/js/util'
 
+// 这个mixin.js文件，主要是解决很多重复的js逻辑，那么在vue需要某个js代码段的时候，
+// 也就是说，这个mixin.js 中函数、方法，是多个组件中，重复出现的代码段；
+// 就将mixin.js的某个导出的函数混入，与data、methods同级，mixins: [playerMixin],
+// 那么这个代码段就混入了vue组件的js代码中，也就相当于直接写在vue组件中了；
+// 与import{func} from 'xx' 一样；
+// 但不同的是，通过 mixins: [playerMixin], 混入的函数，可以在组件中直接调用；
+// 也就是说，不用将 import{func} from 'xx'  的func 取出来挂载到vue组件；
+// 因为混入的内容，直接可以调用，可以作为vue组件的 this.xx 的变量、函数使用；
+// 因为 mixins: [playerMixin] 已经将mixin.js的playerMixin下的所有内容已经挂载到了vue组件中；
+
 // 解决迷你播放器盖住其他页面滚动列表最底部的问题
 export const playlistMixin = {
   computed: {
@@ -37,6 +47,7 @@ export const playlistMixin = {
   }
 }
 
+// 歌曲列表组件的混入函数
 export const playerMixin = {
   computed: {
     // 播放模式icon
@@ -53,6 +64,7 @@ export const playerMixin = {
       'currentSong',
       // 当前播放模式
       'mode',
+      // 收藏列表
       'favoriteList'
     ])
   },
@@ -101,20 +113,35 @@ export const playerMixin = {
       // 如此这般，在切换播放列表的时候，当前播放的歌曲就不会受到影响了；
       this.setCurrentIndex(index)
     },
+    // 收藏或移除收藏当前歌曲，在收藏列表中
     toggleFavorite(song) {
+      // 调用自己封装的，判断是当前歌曲是否在 收藏歌曲列表中
       if (this.isFavorite(song)) {
+        // 如果当前歌曲已经在收藏列表中存在，那么移除
+        // 调用actions.js中的 deleteFavoriteList 函数
         this.deleteFavoriteList(song)
       } else {
+        // 如果不存在，那么就将当前歌曲加入到 收藏列表当中
+        // 调用actions.js中的 saveFavoriteList 函数
         this.saveFavoriteList(song)
       }
     },
+    // 收藏 icon 样式 class
     getFavoriteIcon(song) {
+      // 判断是当前歌曲是否在 收藏歌曲列表中
+      // 调用isFavorite，返回Boolean值
       if (this.isFavorite(song)) {
+        // 如果是
         return 'icon-favorite'
       }
       return 'icon-not-favorite'
     },
+    // 判断是当前歌曲是否在 收藏歌曲列表中
+    // 将当前歌曲传入
     isFavorite(song) {
+      // 在收藏列表数据中，使用js原生的Array&Obj.findIndex,
+      // 如果找到了，说明此时的index 大于 -1 ，返回的就是true；
+      // 如果没找到返回就是false；
       const index = this.favoriteList.findIndex((item) => {
         return item.id === song.id
       })
@@ -130,8 +157,11 @@ export const playerMixin = {
       // 设置播放状态
       setPlayingState: 'SET_PLAYING_STATE'
     }),
+    // 映射actions中的方法
     ...mapActions([
+      // 设置 收藏列表 的某一个歌曲
       'saveFavoriteList',
+      // 删除  收藏列表 的某一个歌曲
       'deleteFavoriteList'
     ])
   }
@@ -142,6 +172,10 @@ export const searchMixin = {
   data() {
     return {
       query: '',
+      // 用于控制scroll重新计算的延迟时间
+      // 因为某些引用scroll组件的元素有动画,
+      // 所以要控制scroll组件的重新计算函数执行的延迟时间
+      // 也就是说,当动画完成后,DOM的高度才是正确的,这是再调用scroll组件的重新计算方法;
       refreshDelay: 120
     }
   },
@@ -167,9 +201,12 @@ export const searchMixin = {
     addQuery(query) {
       this.$refs.searchBox.setQuery(query)
     },
+    // 设置搜索历史记录
     saveSearch() {
       this.saveSearchHistory(this.query)
     },
+    // 映射actions.js下函数
+    // 因为是同名，所以直接写字符串即可
     ...mapActions([
       'saveSearchHistory',
       'deleteSearchHistory'

@@ -25,8 +25,18 @@ const state = {
   disc: {},
   // 当前被点击的排行榜
   topList: {},
+  // 搜索历史数据
+  // 这里没有设置为[]空数组的目的就是，初始vue组件的时候，就要先拿到1次本地的数据，
+  // 否则关闭浏览器、或刷新页面的话，同步会出问题；
+  // 这个 loadSearch()是在common/js/cache.js中拿到的，
+  // 然后赋值给state下的searchHistory，也就是达到初始化时拿到本地存储的数据；
   searchHistory: loadSearch(),
+  // 播放历史，还是在初始化vue的时候，先拿到1次本地存储 localStorage中的播放历史数据；
+  // 同样是调用了 common/js/cache.js中提供的函数；
   playHistory: loadPlay(),
+  // 收藏歌曲的数据
+  // 在初始化的时候先拿到1次本地存储中的数据；
+  // 同样是调用了 common/js/cache.js中提供的函数；
   favoriteList: loadFavorite()
 }
 

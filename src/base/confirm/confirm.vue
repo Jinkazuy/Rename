@@ -17,6 +17,7 @@
 <script type="text/ecmascript-6">
   export default {
     props: {
+      // 父级传入的提示文案；
       text: {
         type: String,
         default: ''
@@ -36,18 +37,27 @@
       }
     },
     methods: {
+      // 显示弹窗
       show() {
         this.showFlag = true
       },
+      // 隐藏弹窗
       hide() {
         this.showFlag = false
       },
+      // 取消清除
       cancel() {
         this.hide()
-        this.$emit('cancel')
+        // 取消的话，没有任何逻辑，所以这里不用操作
+        // 有可能会需要统计点击次数，不过还是看业务需求
+        // this.$emit('cancel')
       },
+      // 确认清除
       confirm() {
         this.hide()
+        // 调用父级的函数 clearSearchHistory，
+        // 这个clearSearchHistory是actions.js中映射的，
+        // 就是直接清空localstorage中的搜索历史记录，和清空state下的搜索历史记录；
         this.$emit('confirm')
       }
     }

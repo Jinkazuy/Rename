@@ -3,6 +3,22 @@ import Router from 'vue-router'
 
 Vue.use(Router)
 
+// 原始的引入组件的方法是：↓↓↓
+// import Recommend from 'components/recommend/recommend'
+
+// 这种import().then()的方法的区别，太长了，看文章吧；
+// https://blog.csdn.net/ixygj197875/article/details/79263912
+
+// 大概意思就是: import()可以放在函数或者代码块中，而import..from只能用在最外层模块；
+// 因为 import..from 执行的优先级会大于其他代码、函数等，也就是会在其他代码之前执行；
+
+// 但import()允许放在函数中的，也就做到了按需加载，而且import()返回的是一个promise对象；
+// 这样比如在click一个元素的时候 就可以在这个click的处理函数中，在import()某个文件；
+
+// 那么也称之为：懒路由加载、动态路由加载；
+// 这样的好处就是动态的加载路由，打包编译时候的文件不会很大；
+// 那么初次请求的时候，请求的数据也不会很大，都是用到相关的路由的时候，再申请对应的路由的页面、组件；
+
 // 一级路由：推荐页
 const Recommend = (resolve) => {
   import('components/recommend/recommend').then((module) => {
@@ -52,6 +68,7 @@ const TopList = (resolve) => {
   })
 }
 
+// 一级：用户中心
 const UserCenter = (resolve) => {
   import('components/user-center/user-center').then((module) => {
     resolve(module)

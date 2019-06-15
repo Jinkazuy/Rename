@@ -109,7 +109,10 @@
             <div class="icon i-right" :class="disableCls">
               <i @click="next" class="icon-next"></i>
             </div>
+            <!--// 收藏按钮-->
             <div class="icon i-right">
+              <!--// @click，调用mixin.js中切换收藏歌曲的方法toggleFavorite；-->
+              <!--// :class，调用mixin.js中的getFavoriteIcon，查找当前歌曲是否在收藏列表中，从而渲染icon样式-->
               <i @click="toggleFavorite(currentSong)" class="icon" :class="getFavoriteIcon(currentSong)"></i>
             </div>
           </div>
@@ -149,6 +152,7 @@
         </div>
       </div>
     </transition>
+    <!--播放列表组件-->
     <playlist ref="playlist"></playlist>
     <!--播放功能-->
     <!--play事件，在媒体文件开始播放时触发；-->
@@ -449,7 +453,7 @@
       ready() {
         // 点击播放时，让songReady为true
         this.songReady = true
-        // 调用vuex中的xxx
+        // 调用vuex中的 存储播放历史的数据的函数，将当前播放歌曲存储；
         this.savePlayHistory(this.currentSong)
       },
       error() {
@@ -568,7 +572,9 @@
         // 设置播放歌词数据为 是当前播放的歌词的行数的 那一行 的字符串；
         this.playingLyric = txt
       },
+      // 显示歌曲列表
       showPlaylist() {
+        // 拿到播放列表组件的.show()方法，显示播放列表组件；
         this.$refs.playlist.show()
       },
       // 切换唱片 & 歌词

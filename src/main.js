@@ -1,5 +1,6 @@
 import 'babel-polyfill'
 import Vue from 'vue'
+// 挂载App.vue这个最大的组件
 import App from './App'
 // 载入router
 import router from './router'
@@ -12,6 +13,15 @@ import VueLazyload from 'vue-lazyload'
 import store from './store'
 // 载入styl样式文件
 import 'common/stylus/index.styl'
+
+// // 因为eslint 会检查到没有被引用的 import 的文件、第三方包；
+// // 因为这个第三包是不需要调用的，所以不让eslint不检查这个import
+// // 这里是微信的第三方包，用于移动端打印信息，如果不需要就注释即可；
+// /* eslint-disable no-unused-vars */
+// import VConsole from 'vconsole'
+// var vConsole = new VConsole()
+//
+// console.log('打印移动端测试，用到了微信的vConsole 第三方包')
 
 // 将点击插件应用于body元素下，也就是body下的所有元素点击都不会有300ms延迟；
 fastclick.attach(document.body)

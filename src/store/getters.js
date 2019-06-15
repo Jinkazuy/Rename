@@ -32,8 +32,11 @@ export const disc = state => state.disc
 // 当前被点击的排行榜
 export const topList = state => state.topList
 
+// 搜索历史
 export const searchHistory = state => state.searchHistory
 
+// 播放历史
 export const playHistory = state => state.playHistory
 
+// 收藏列表
 export const favoriteList = state => state.favoriteList

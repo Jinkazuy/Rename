@@ -2,16 +2,17 @@
 import * as types from './mutation-types'
 import {playMode} from 'common/js/config'
 import {shuffle} from 'common/js/util'
+// 拿到一些封装好的函数 cache.js 中都是与 操作 本地存储 相关的函数；
 import {saveSearch, clearSearch, deleteSearch, savePlay, saveFavorite, deleteFavorite} from 'common/js/cache'
 
-// 找到当前播放歌曲在随机播放列表中的索引
+// 找到当前播放歌曲在 播放列表中的索引
 function findIndex(list, song) {
   return list.findIndex((item) => {
     return item.id === song.id
   })
 }
 
-// 选择播放
+// 播放模式
 // 参数1对象中的 第1个变量，接收的是
 // 参数1对象中的 第2个变量，接收的是state中的数据，因为最终都有store/index.js引入所有文件
 // 所以这个action.js中的变量也能够直接拿到state.js、mutations.js等文件中的函数、数据等；
@@ -47,15 +48,16 @@ export const selectPlay = function ({commit, state}, {list, index}) {
   commit(types.SET_PLAYING_STATE, true)
 }
 
-// 随机播放，当点击歌手详情页的全部随机播放按钮时触发；
+// 全部随机播放，
+// 当点击歌手详情页 或者 个人中心 的全部随机播放按钮时触发；
 export const randomPlay = function ({commit}, {list}) {
   // 设置播放模式为随机播放，也就是2
   commit(types.SET_PLAY_MODE, playMode.random)
-  // 设置顺序播放列表为当前的播放列表；
+  // 设置顺序播放列表 为当前传入与的歌曲列表；
   commit(types.SET_SEQUENCE_LIST, list)
   // 调用自己写的洗牌函数，将顺序播放列表打乱 得到 随机播放列表；
   let randomList = shuffle(list)
-  // 将当前播放列表传入随机播放列表
+  // 将打乱顺序的列表，也就是随机列表，设置为当前播放列表；
   commit(types.SET_PLAYLIST, randomList)
   // 将当前播放歌曲索引设置为0
   commit(types.SET_CURRENT_INDEX, 0)
@@ -65,7 +67,8 @@ export const randomPlay = function ({commit}, {list}) {
   commit(types.SET_PLAYING_STATE, true)
 }
 
-// 将某一首歌曲，插入到当前播放歌曲的后边；
+// 插入歌曲、添加歌曲；
+// 将某一首歌曲，插入、添加到当前播放歌曲的后边；
 export const insertSong = function ({commit, state}, song) {
   // 使用slice方法，复制一个播放列表
   // 因为，如果不是复制的话，那么就会指向同一个 堆 地址，
@@ -158,56 +161,102 @@ export const insertSong = function ({commit, state}, song) {
   commit(types.SET_PLAYING_STATE, true)
 }
 
+// 搜索历史存储
+// 调用 封装在comomn/js/cache中的 saveSearch 函数；
 export const saveSearchHistory = function ({commit}, query) {
+  // 这里操作的是mutations中的 SET_SEARCH_HISTORY
+  // 而这个 SET_SEARCH_HISTORY 操作的的是 state 下的 searchHistory
+  // 而且这个 saveSearch 返回值是最新的搜索结果；
+  // 也就是说，这里是将最新的搜索结果 先添加到本地存储，然后这个方法还会返回最新的搜索历史
+  // 那么拿到返回的最新搜索历史数据，在放到state下的 searchHistory 中
   commit(types.SET_SEARCH_HISTORY, saveSearch(query))
 }
 
+// 删除某条历史记录
+// 调用 封装在comomn/js/cache中的 deleteSearch 函数；
+// deleteSearch函数在删除localstorage中的某1条数据后，返回删除后的最新的数组
 export const deleteSearchHistory = function ({commit}, query) {
   commit(types.SET_SEARCH_HISTORY, deleteSearch(query))
 }
 
+// 清空搜索历史记录
+// 调用 封装在comomn/js/cache中的 clearSearch 函数；
+// clearSearch在清空localstorage中的数据，返回一个空数组；
 export const clearSearchHistory = function ({commit}) {
   commit(types.SET_SEARCH_HISTORY, clearSearch())
 }
 
+// 删除歌曲
+// 删除顺序列表 & 播放列表 中的某一个首歌曲
 export const deleteSong = function ({commit, state}, song) {
+  // 复制一份播放列表
   let playlist = state.playlist.slice()
+  // 复制一份顺序列表
   let sequenceList = state.sequenceList.slice()
+  // 拿到当前播放歌曲的索引
   let currentIndex = state.currentIndex
+  // 找到要删除的这个首歌曲，在播放列表中的索引
   let pIndex = findIndex(playlist, song)
+  // 首先，先删除在这首歌曲
   playlist.splice(pIndex, 1)
+  // 找到要删除的这首歌曲，在顺序列表中的索引
   let sIndex = findIndex(sequenceList, song)
+  // 删除这首歌曲
+  // 当然，到了这一步，操作 播放列表 和顺序列表 的都是复制的临时变量
   sequenceList.splice(sIndex, 1)
+  // 判断，如果当前播歌曲的索引 大于了 要删除的歌曲的索引，
+  // 说明当前播放歌曲的前边少了1个元素，当前播放歌曲的索引需要-1；
+  // 或者，
+  // 当前播放歌曲 等于了 播放列表列表的长度，说明当前播放歌曲已经排列在数组之外了，
+  // 因为数组的索引是 [0, 1, 2, 3] ，length就=4
+  // 如果当前播放歌曲索引=4的话，就已经被排列在数组之外了
+  // 所以 当前播放歌曲的索引需要-1；
   if (currentIndex > pIndex || currentIndex === playlist.length) {
     currentIndex--
   }
+  // 如果以上条件不符合的话，说明删除的歌曲的索引，是在当前播放歌曲的后边的，不影响当前播放歌曲的索引；
 
+  // 经过一顿折腾，数据都准备好了，再操作mutations下的函数，从而操作state的数据
+  // 将当前播放列表重新赋值；
   commit(types.SET_PLAYLIST, playlist)
+  // 将顺序播放列表，重新赋值
   commit(types.SET_SEQUENCE_LIST, sequenceList)
+  // 将当前播放歌曲，重新赋值
   commit(types.SET_CURRENT_INDEX, currentIndex)
 
+  // 这里还要判断，如果播放列表=0，说明用户删除的是最后一首歌
   if (!playlist.length) {
+    // 那么就将当前播放状态设置为false
     commit(types.SET_PLAYING_STATE, false)
   } else {
+    // 否则就播放
     commit(types.SET_PLAYING_STATE, true)
   }
 }
 
+// 清除歌曲列表组件中的所有歌曲
 export const deleteSongList = function ({commit}) {
+  // 设置当前播放歌曲索引为-1，这样就不会播放歌曲了
   commit(types.SET_CURRENT_INDEX, -1)
+  // 设置播放列表为空
   commit(types.SET_PLAYLIST, [])
+  // 设置顺序列表为空
   commit(types.SET_SEQUENCE_LIST, [])
+  // 设置播放状态为false，也就是不播放
   commit(types.SET_PLAYING_STATE, false)
 }
 
+// 设置最近播放列表 添加一首歌曲
 export const savePlayHistory = function ({commit}, song) {
   commit(types.SET_PLAY_HISTORY, savePlay(song))
 }
 
+// 设置收藏列表 添加一首歌曲
 export const saveFavoriteList = function ({commit}, song) {
   commit(types.SET_FAVORITE_LIST, saveFavorite(song))
 }
 
+// 删除播放列表的某一个歌曲
 export const deleteFavoriteList = function ({commit}, song) {
   commit(types.SET_FAVORITE_LIST, deleteFavorite(song))
 }

@@ -1,3 +1,4 @@
+// 模拟一个小型服务器,将打包后的文件执行一下;
 var express = require('express')
 var config = require('./config/index')
 var axios = require('axios')
@@ -8,6 +9,8 @@ var app = express()
 
 var apiRoutes = express.Router()
 
+// 因为需要代理ajax请求,欺骗qq服务器,与build/dev-server.js中的逻辑一样
+// 代理的ajax请求
 apiRoutes.get('/getDiscList', function (req, res) {
   var url = 'https://c.y.qq.com/splcloud/fcgi-bin/fcg_get_diss_by_tag.fcg'
   axios.get(url, {
@@ -23,6 +26,7 @@ apiRoutes.get('/getDiscList', function (req, res) {
   })
 })
 
+// 代理的ajax请求
 apiRoutes.get('/lyric', function (req, res) {
   var url = 'https://c.y.qq.com/lyric/fcgi-bin/fcg_query_lyric_new.fcg'
 

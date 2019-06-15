@@ -2,6 +2,9 @@
   <div class="m-header">
     <div class="icon"></div>
     <h1 class="text">Chicken Music</h1>
+    <!--// 点击显示个人中心路由-->
+    <!--// 因为这个m-header.vue组件是引入到app.vue的，-->
+    <!--// 所以这里的router-link控制的也就是app.vue中的router-link-->
     <router-link tag="div" class="mine" to="/user">
       <i class="icon-mine"></i>
     </router-link>

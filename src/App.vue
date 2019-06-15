@@ -3,6 +3,7 @@
     <m-header></m-header>
     <!--tab组件控制router-link，从而控制router-view显示的内容-->
     <!--也就是说，将处理router-link抽象成一个组件，方便维护-->
+    <!--也就是在这里的router-link统一管理到tab.vue中-->
     <tab></tab>
     <!--keep-alive标签保存DOM状态，在router切换时，不重新加载DOM-->
     <keep-alive>
@@ -26,6 +27,7 @@
       // 将引入的组件挂载
       MHeader,
       Tab,
+      // 播放器组件
       Player
     }
   }
