@@ -5,7 +5,7 @@
     <!--也就是说，将处理router-link抽象成一个组件，方便维护-->
     <!--也就是在这里的router-link统一管理到tab.vue中-->
     <tab></tab>
-    <!--keep-alive标签保存DOM状态，在router切换时，不重新加载DOM-->
+    <!--keep-alive标签保存DOM状态， 在router切换时，不重新加载DOM-->
     <keep-alive>
       <router-view></router-view>
     </keep-alive>
